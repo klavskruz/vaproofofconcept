@@ -28,27 +28,27 @@ namespace MeetingApi.Controllers.Service.JiraService
                 using (var request = new HttpRequestMessage(new HttpMethod("GET"), ($"{urlWithIdInserted}")))
                 {
                     request.Headers.TryAddWithoutValidation("Accept", "application/json");
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("klavs.kruzins@gmail.com:fpd7JDMRYwa4aRmRPH8uD0CB"));
+                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("EMAIL:API KEY"));
                     request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
                     var response = await httpClient.SendAsync(request);
-                    return await response.Content.ReadAsStringAsync();
-                    //var issueResult = await response.Content.ReadFromJsonAsync<Issue>();
-                    //string issueSummary = issueResult.fields.summary;
-                    //int lastCommentIndex = issueResult.fields.comment.comments.Length-1;
-                    //string lastComment = issueResult.fields.comment.comments[lastCommentIndex].body.content[0].content[0].text;
-                    //string issueStatus = issueResult.fields.status.name;
-                    //string issueEstimateOriginal = (Int32.Parse(issueResult.fields.timeoriginalestimate.ToString()) / 28000).ToString();
-                    //string issueEstimateRemaining = (Int32.Parse(issueResult.fields.timeestimate.ToString()) / 28000).ToString();
-                    //string issueDescription = issueResult.fields.description.content[0].content[0].text;
-                    //string issueDetails = (
-                    //                        $"Summary: {issueSummary} \n" +
-                    //                        $"Latest Comment: {lastComment} \n" +
-                    //                        $"Status: {issueStatus} \n" +
-                    //                        $"Original Estimate: {issueEstimateOriginal} days\n" +
-                    //                        $"Remaining estimate: {issueEstimateRemaining} days\n" +
-                    //                        $"Description: " + issueDescription
-                    //    );
-                    //return issueDetails;
+                    await response.Content.ReadAsStringAsync();
+                    var issueResult = await response.Content.ReadFromJsonAsync<Issue>();
+                    string issueSummary = issueResult.fields.summary;
+                    int lastCommentIndex = issueResult.fields.comment.comments.Length-1;
+                    string lastComment = issueResult.fields.comment.comments[lastCommentIndex].body.content[0].content[0].text;
+                    string issueStatus = issueResult.fields.status.name;
+                    string issueEstimateOriginal = (Int32.Parse(issueResult.fields.timeoriginalestimate.ToString()) / 28000).ToString();
+                    string issueEstimateRemaining = (Int32.Parse(issueResult.fields.timeestimate.ToString()) / 28000).ToString();
+                    string issueDescription = issueResult.fields.description.content[0].content[0].text;
+                    string issueDetails = (
+                                            $"Summary: {issueSummary} \n" +
+                                            $"Latest Comment: {lastComment} \n" +
+                                            $"Status: {issueStatus} \n" +
+                                            $"Original Estimate: {issueEstimateOriginal} days\n" +
+                                            $"Remaining estimate: {issueEstimateRemaining} days\n" +
+                                            $"Description: " + issueDescription
+                        );
+                    return issueDetails;
 
                 }
 
