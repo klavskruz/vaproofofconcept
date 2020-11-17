@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace MeetingApi.Controllers.Helpers
 {
-    public class DialogHelper
+    public class DialogService
     {
         
         public static JsonParser returnNewJsonParser() {

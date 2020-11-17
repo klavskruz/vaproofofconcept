@@ -25,7 +25,7 @@ namespace FlightDialogsController.Controllers
 
         }
 
-        private static readonly JsonParser jsonParser = DialogHelper.returnNewJsonParser();
+        private static readonly JsonParser jsonParser = DialogService.returnNewJsonParser();
 
 
         [HttpPost]
@@ -50,24 +50,24 @@ namespace FlightDialogsController.Controllers
             // Get flight quote
             if (request.QueryResult.Action.Equals("findFlight"))
             {
-                textToReturn = await FlightsHelper.getFlightPricesAsync(request, _apiContext);
+                textToReturn = await FlightsService.getFlightPricesAsync(request, _apiContext);
             }
 
             // Add flight to database
             else if (request.QueryResult.Action.Equals("buyFlight")) {
-                textToReturn = await FlightsHelper.addFlightToDatabase(request, _apiContext, _dbContext);
+                textToReturn = await FlightsService.addFlightToDatabase(request, _apiContext, _dbContext);
             }
 
             // See all flights in database
             else if (request.QueryResult.Action == "showAll")
             {
-                textToReturn = await FlightsHelper.showAllFlightsInDatabase(_dbContext);
+                textToReturn = await FlightsService.showAllFlightsInDatabase(_dbContext);
             }
 
             // Remove flight from the database
             else if (request.QueryResult.Action == "deleteFlight")
             {
-                textToReturn = await FlightsHelper.deleteFlightFromDatabase(request, _dbContext);
+                textToReturn = await FlightsService.deleteFlightFromDatabase(request, _dbContext);
 
             }
 
@@ -77,7 +77,7 @@ namespace FlightDialogsController.Controllers
             }
 
 
-            string responseJson = DialogHelper.populateResponse(textToReturn);
+            string responseJson = DialogService.populateResponse(textToReturn);
             var content = Content(responseJson, "application/json");
 
             return content;

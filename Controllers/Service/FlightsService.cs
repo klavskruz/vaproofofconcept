@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace MeetingApi.Controllers.Helpers
 {
-    public class FlightsHelper
+    public class FlightsService
     {
         static string textToReturn;
         public static async Task<string> getFlightPricesAsync(WebhookRequest request, FlightsAPIContext _apiContext) {

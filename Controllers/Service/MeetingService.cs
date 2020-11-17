@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace MeetingApi.Controllers.Helpers
 {
-    public class MeetingHelper
+    public class MeetingService
     {
         static string textToReturn;
         public static async Task<string> AddMeetingToDatabase(WebhookRequest request, MeetingContext _context)

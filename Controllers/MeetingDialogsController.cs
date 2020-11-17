@@ -22,7 +22,7 @@ namespace MeetingApi.Controllers
             _context = context;
         }
 
-        private static readonly JsonParser jsonParser = DialogHelper.returnNewJsonParser();
+        private static readonly JsonParser jsonParser = DialogService.returnNewJsonParser();
         
 
 
@@ -47,32 +47,32 @@ namespace MeetingApi.Controllers
             // Add a meeting into database
             if (request.QueryResult.Action == "addMeeting")
             {
-                textToReturn = await MeetingHelper.AddMeetingToDatabase(request, _context);
+                textToReturn = await MeetingService.AddMeetingToDatabase(request, _context);
             }
             // DISPLAY ALL MEETINGS 
             else if (request.QueryResult.Action == "showAll")
             {
-                textToReturn = await MeetingHelper.ShowAllMeetings(request, _context);
+                textToReturn = await MeetingService.ShowAllMeetings(request, _context);
             }
 
             // DELETE MEETING PROVIDED THE TIME
             else if (request.QueryResult.Action == "deleteMeetingTime")
             {
-                textToReturn = await MeetingHelper.DeleteMeetingFromDatabase(requestParameters, _context);             
+                textToReturn = await MeetingService.DeleteMeetingFromDatabase(requestParameters, _context);             
             }
             // FIND ALL MEETINGS WITH A CERTAIN PERSON
             else if (request.QueryResult.Action == "findByPerson")
             {
-                textToReturn = await MeetingHelper.FindMeetingsFromDatabase(requestParameters, _context);
+                textToReturn = await MeetingService.FindMeetingsFromDatabase(requestParameters, _context);
             }
 
 
             else {
-                textToReturn = "Something has gone terribly wrong mate!";
+                textToReturn = "Given action could not be resolved!";
 
             }
 
-            string responseJson = DialogHelper.populateResponse(textToReturn);
+            string responseJson = DialogService.populateResponse(textToReturn);
             var content = Content(responseJson, "application/json");
 
             return content;

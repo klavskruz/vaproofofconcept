@@ -1,14 +1,11 @@
 ﻿
 using Google.Cloud.Dialogflow.V2;
 using Google.Protobuf;
-using Google.Type;
-using MeetingApi.Controllers;
+using MeetingApi.Controllers.Helpers;
 using MeetingApi.Models;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -25,10 +22,9 @@ namespace WeatherDialogsController.Controllers
             _context = new WeatherAPIContext(factory);
             
         }
-        // A Protobuf JSON parser configured to ignore unknown fields. This makes
-        // the action robust against new fields being introduced by Dialogflow.
-        private static readonly JsonParser jsonParser =
-        new JsonParser(JsonParser.Settings.Default.WithIgnoreUnknownFields(true));
+
+        private static readonly JsonParser jsonParser = DialogService.returnNewJsonParser();
+       
 
         [HttpPost]
         public async Task<ContentResult> GetWeatherAsync()
@@ -43,46 +39,14 @@ namespace WeatherDialogsController.Controllers
             }
 
             WebhookRequest request;
-            //Parse the intent params
             request = jsonParser.Parse<WebhookRequest>(requestJson);
-            var requestParameters = request.QueryResult.Parameters;
-            string location = requestParameters.Fields["geo-city"].StringValue;
-            System.DateTime datetimeFromParams = DateTimeOffset.Parse(requestParameters.Fields["date-time"].StringValue).UtcDateTime;
-            System.DateTime date = datetimeFromParams.Date;
-            string locationCapitalised = char.ToUpper(location[0]) + location.Substring(1);
-            string woid = await _context.GetWoid(location);
-            var forecast = await _context.GetWeatherFiveDays(woid);
 
-            // GET WEATHER TODAY
-            if (date == System.DateTime.Today)
-            {           
-                textToReturn = $"Today's forecast in {locationCapitalised} is {forecast.Consolidated_weather[0].Weather_state_name.ToLower()}." +
-                    $" Min. temperature is {forecast.Consolidated_weather[0].Min_temp}c and the" +
-                    $" max temperature is {forecast.Consolidated_weather[0].Max_temp}c.";
+            textToReturn = await WeatherService.getWeather(request, _context);
 
-            }
-            //GET WEATHER TOMORROW
-            else if ((System.DateTime.Today - date).TotalDays == -1)
-            { 
-                textToReturn = $"Tomorrow  in {locationCapitalised} you can expect {forecast.Consolidated_weather[1].Weather_state_name.ToLower()}." +
-                    $" Min. temperature is {forecast.Consolidated_weather[1].Min_temp}c and the" +
-                    $" max temperature is {forecast.Consolidated_weather[1].Max_temp}c.";
+            string responseJson = DialogService.populateResponse(textToReturn);
+            var content = Content(responseJson, "application/json");
 
-            }
-            else
-            {
-                textToReturn = "Something has gone terribly wrong mate!";
-            }
-
-            // Populate the response
-            WebhookResponse response = new WebhookResponse
-            {
-                FulfillmentText = textToReturn
-            };
-            // Ask Protobuf to format the JSON to return.
-         
-            string responseJson = response.ToString();
-            return Content(responseJson, "application/json");
+            return content;
         }
 
     }
