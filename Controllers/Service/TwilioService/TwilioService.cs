@@ -16,15 +16,15 @@ namespace MeetingApi.Controllers.Service.TwilioService
         {
             // Find your Account Sid and Token at twilio.com/console
             // and set the environment variables. See http://twil.io/secure
-            string accountSid = "AC6ca0291c85bac2bf44ec8bd5df46e833";
-            string authToken = "60c9c687bd61e9917a929e7da6125e87";
+            string accountSid = "sid";
+            string authToken = "auth token";
 
             TwilioClient.Init(accountSid, authToken);
 
             var message = MessageResource.Create(
                 body: smsText,
                 from: new Twilio.Types.PhoneNumber("whatsapp:+14155238886"),
-                to: new Twilio.Types.PhoneNumber("whatsapp:+447376483667")
+                to: new Twilio.Types.PhoneNumber("whatsapp:number")
             );
 
             Console.WriteLine(message.Sid);

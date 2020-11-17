@@ -28,7 +28,7 @@ namespace MeetingApi.Controllers.Service.JiraService
                 using (var request = new HttpRequestMessage(new HttpMethod("GET"), ($"{urlWithIdInserted}")))
                 {
                     request.Headers.TryAddWithoutValidation("Accept", "application/json");
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("EMAIL:API KEY"));
+                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes(""));
                     request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
                     var response = await httpClient.SendAsync(request);
                     await response.Content.ReadAsStringAsync();
