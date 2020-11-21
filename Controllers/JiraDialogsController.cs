@@ -35,26 +35,27 @@ namespace MeetingApi.Controllers
             request = jsonParser.Parse<WebhookRequest>(requestJson);
 
 
-            // Add a comment. Params  - issueKey and comment
+            // Add a comment
             if (request.QueryResult.Action == "addIssueComment")
             {
                 textToReturn = await JiraService.AddComment(request);
             }
 
-            // Show all todo's from the database
+            // Change issue status
             else if (request.QueryResult.Action == "changeIssueStatus")
             {
                 textToReturn = await JiraService.ChangeStatusOfIssue(request);
             }
+            // Get issue details
             else if (request.QueryResult.Action == "getIssueDetails")
             {
                 textToReturn = await JiraService.GetIssueDetails(request);
             }
 
-            // 
+            // Get all the issues asssigned to the user
             else if (request.QueryResult.Action == "getAllAssignedIssues")
             {
-                await TwilioService.SendMorningMessagesAsync();
+                textToReturn = JiraHelper.CreateAssignedIssueTable(await JiraAPIContext.GetAssignedIssues());
             }
             
 

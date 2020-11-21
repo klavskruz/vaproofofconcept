@@ -44,7 +44,7 @@ namespace MeetingApi.Controllers
         [HttpGet]
         public async Task<string> GetIssueById()
         {
-           return await JiraAPIContext.getIssueDetails("VAPOC-1");
+           return await JiraAPIContext.changeIssueStatus("10000","done");
             }
 
         }

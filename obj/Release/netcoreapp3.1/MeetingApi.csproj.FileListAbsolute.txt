@@ -362,3 +362,4 @@ C:\Users\klavs.kruzins\Desktop\va2020-master\obj\Release\netcoreapp3.1\MeetingAp
 C:\Users\klavs.kruzins\Desktop\va2020-master\obj\Release\netcoreapp3.1\MeetingApi.genruntimeconfig.cache
 C:\Users\klavs.kruzins\Desktop\va2020-master\bin\Release\netcoreapp3.1\Properties\ServiceDependencies\twiliova - Web Deploy1\profile.arm.json
 C:\Users\klavs.kruzins\Desktop\va2020-master\bin\Release\netcoreapp3.1\Properties\ServiceDependencies\twiliova - Web Deploy2\profile.arm.json
+C:\Users\klavs.kruzins\Desktop\va2020-master\bin\Release\netcoreapp3.1\Properties\ServiceDependencies\jirabuddyapi - Web Deploy\profile.arm.json

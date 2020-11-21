@@ -16,7 +16,7 @@ namespace MeetingApi.Controllers.Service.JiraService
 {
     public class JiraAPIContext
     {
- 
+
         public static async Task<string> getIssueDetails(string issueId)
         {
 
@@ -27,19 +27,23 @@ namespace MeetingApi.Controllers.Service.JiraService
 
                 using (var request = new HttpRequestMessage(new HttpMethod("GET"), ($"{urlWithIdInserted}")))
                 {
-                    request.Headers.TryAddWithoutValidation("Accept", "application/json");
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes(""));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                    var response = await httpClient.SendAsync(request);
-                    await response.Content.ReadAsStringAsync();
+
+                    var response = await JiraHelper.GetResponseMessageAsync(httpClient, request);
+
+                    // Check if issue with given ID exists
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    if (responseString.Contains("Issue does not exist or you do not have permission to see it."))
+                    {
+                        return "There is no issue with the given ID";
+                    }
+
                     var issueResult = await response.Content.ReadFromJsonAsync<Issue>();
                     string issueSummary = issueResult.fields.summary;
-                    int lastCommentIndex = issueResult.fields.comment.comments.Length-1;
-                    string lastComment = issueResult.fields.comment.comments[lastCommentIndex].body.content[0].content[0].text;
                     string issueStatus = issueResult.fields.status.name;
-                    string issueEstimateOriginal = (Int32.Parse(issueResult.fields.timeoriginalestimate.ToString()) / 28000).ToString();
-                    string issueEstimateRemaining = (Int32.Parse(issueResult.fields.timeestimate.ToString()) / 28000).ToString();
                     string issueDescription = issueResult.fields.description.content[0].content[0].text;
+                    string lastComment = JiraInputValidator.getLastCommentIfExists(issueResult);
+                    string issueEstimateOriginal = JiraInputValidator.getOriginalEstimateIfExists(issueResult);
+                    string issueEstimateRemaining = JiraInputValidator.getRemainingEstimateIfExists(issueResult);
                     string issueDetails = (
                                             $"Summary: {issueSummary} \n" +
                                             $"Latest Comment: {lastComment} \n" +
@@ -56,7 +60,7 @@ namespace MeetingApi.Controllers.Service.JiraService
         }
         public static async Task<List<IssueShortened>> GetAssignedIssues()
         {
- 
+
             using (var httpClient = new HttpClient())
             {
 
@@ -64,10 +68,7 @@ namespace MeetingApi.Controllers.Service.JiraService
                 using (var request = new HttpRequestMessage(new HttpMethod("GET"), "https://vapoc.atlassian.net/rest/api/2/search?jql=assignee=currentuser()"))
                 {
                     AssignedIssues userIssues;
-                    request.Headers.TryAddWithoutValidation("Accept", "application/json");
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("klavs.kruzins@gmail.com:fpd7JDMRYwa4aRmRPH8uD0CB"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                    var response = await httpClient.SendAsync(request);
+                    var response = await JiraHelper.GetResponseMessageAsync(httpClient, request);
                     userIssues = await response.Content.ReadFromJsonAsync<AssignedIssues>();
                     var sortedIssues = IssueService.IssueService.sortIssueListByPriority(userIssues.issues);
                     return sortedIssues;
@@ -82,45 +83,46 @@ namespace MeetingApi.Controllers.Service.JiraService
 
         public static async Task<string> changeIssueStatus(string issueId, string statusId)
         {
-             
+
             using (var httpClient = new HttpClient())
             {
-                
-                string urlWithIdInserted = $"https://vapoc.atlassian.net/rest/api/3/issue/{issueId}/transitions";               
-                string jsonBodyContent = $"{{\"transition\":{{\"id\":\"{statusId}\"}}}}";   
+
+                string urlWithIdInserted = $"https://vapoc.atlassian.net/rest/api/3/issue/{issueId}/transitions";
+                string jsonBodyContent = $"{{\"transition\":{{\"id\":\"{statusId}\"}}}}";
                 using (var request = new HttpRequestMessage(new HttpMethod("POST"), ($"{urlWithIdInserted}")))
                 {
-                    request.Headers.TryAddWithoutValidation("Accept", "application/json");
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("klavs.kruzins@gmail.com:fpd7JDMRYwa4aRmRPH8uD0CB"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
+
                     request.Content = new StringContent(jsonBodyContent);
                     request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                    var response = await httpClient.SendAsync(request);
-                    return await response.Content.ReadAsStringAsync();
+                    var response = await JiraHelper.GetResponseMessageAsync(httpClient, request);
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    return responseString;
 
                 }
 
             }
         }
 
-
+        
         public static async Task<string> addComment(string issueId, string comment)
         {
 
             using (var httpClient = new HttpClient())
             {
-                string bodyWithComment = $"{{\n  \"visibility\": {{\n    \"type\": \"role\",\n    \"value\": \"Administrators\"\n  }},\n  \"body\": {{\n    \"type\": \"doc\",\n    \"version\": 1,\n    \"content\": [\n      {{\n        \"type\": \"paragraph\",\n        \"content\": [\n          {{\n            \"text\": \"{comment}\",\n            \"type\": \"text\"\n          }}\n        ]\n      }}\n    ]\n  }}\n}}";
+                string bodyWithComment = JiraHelper.ParseCommentIntoBody(comment);
                 string urlWithIdInserted = $"https://vapoc.atlassian.net/rest/api/3/issue/{issueId}/comment";
-                Console.WriteLine(comment);
+
                 using (var request = new HttpRequestMessage(new HttpMethod("POST"), ($"{urlWithIdInserted}")))
                 {
-                    request.Headers.TryAddWithoutValidation("Accept", "application/json");
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("klavs.kruzins@gmail.com:fpd7JDMRYwa4aRmRPH8uD0CB"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
                     request.Content = new StringContent(bodyWithComment);
                     request.Content.Headers.ContentType = MediaTypeHeaderValue.Parse("application/json");
-                    var response = await httpClient.SendAsync(request);
-                    return await response.Content.ReadAsStringAsync();
+                    var response = await JiraHelper.GetResponseMessageAsync(httpClient, request);
+                    var responseString = await response.Content.ReadAsStringAsync();
+                    if (responseString.Contains("Issue does not exist or you do not have permission to see it."))
+                    {
+                        return "There is no issue with the given ID";
+                    }
+                    return "Comment added";
 
                 }
 
@@ -138,10 +140,7 @@ namespace MeetingApi.Controllers.Service.JiraService
 
                 using (var request = new HttpRequestMessage(new HttpMethod("GET"), ($"{urlWithIdInserted}")))
                 {
-                    request.Headers.TryAddWithoutValidation("Accept", "application/json");
-                    var base64authorization = Convert.ToBase64String(Encoding.ASCII.GetBytes("klavs.kruzins@gmail.com:fpd7JDMRYwa4aRmRPH8uD0CB"));
-                    request.Headers.TryAddWithoutValidation("Authorization", $"Basic {base64authorization}");
-                    var response = await httpClient.SendAsync(request);
+                    var response = await JiraHelper.GetResponseMessageAsync(httpClient, request);
                     return await response.Content.ReadAsStringAsync();
 
                 }
